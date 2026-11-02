@@ -529,9 +529,13 @@ export function uDropAt(d: UDrop, t: number): { u: number; v: number; rot: numbe
  *  - halo: a tight glow just outside the edges, fading over `width`;
  *  - bloom: a soft aura shaped like the halo (blurred over `radius`), hugging the silhouette
  *    (`drop`: how far it sinks, × logo height; 0 keeps it centred on the edges).
- * Every edge glows: strongest on those facing down, a little less on the sides, `around` on
- * those facing up (relative to those facing down), so the light outlines the whole mark
- * rather than pooling under it; `blend` smooths that change around corners. The rim and halo are drawn at about the logo's on-screen device resolution (`fine`).
+ * The light comes from the bottom contour: edges facing down (the U's pointed bottom, the
+ * rising diagonal towards the X, the X's lower edges) glow fully, ramping in with how much
+ * they face down (`facing`: smoothstep from [0] to [1] of the normal's downward part, to the
+ * power [2]); sides, tops and slit walls keep only `around` (a faint reflected light) and
+ * the D's enclosed counter none, so the upper U, D and X stay solid black. It is a soft
+ * emission seeping a little into the black with a gentle bloom below, not an outline;
+ * `blend` smooths the change around corners. The rim and halo are drawn at about the logo's on-screen device resolution (`fine`).
  * It begins only once every cross has gone (`start`, after TIMELINE.fragmentsOut and the U
  * drops), eases in over `rise` s, holds its peak for `hold` s, eases out over `fall` s and is
  * gone before the animation ends: the logo is left plain black. It happens exactly once.
@@ -548,14 +552,15 @@ export const GLOW = {
    */
   slit: 0.019,
   slitLength: 0.2,
-  around: 0.5,
+  around: 0.03,
+  facing: [0.05, 0.9, 1.4],
   /** smoothing used to read each edge's direction, × logo height */
   normal: 0.012,
   /** fine grid: up to `maxScale` × the silhouette's resolution and `maxCells` pixels; margin × logo height */
   fine: { maxScale: 2, maxCells: 600_000, margin: 0.12 },
-  rim: { hot: [255, 168, 90], deep: [236, 76, 32], opacity: 1, width: 0.014, blend: 0.012 },
-  halo: { color: [255, 96, 40], opacity: 0.85, width: 0.013, blend: 0.035 },
-  bloom: { color: [255, 110, 60], opacity: 0.22, radius: 0.03, gain: 2, drop: 0, margin: 0.3 },
+  rim: { hot: [255, 150, 78], deep: [214, 58, 24], opacity: 0.85, width: 0.024, blend: 0.02 },
+  halo: { color: [255, 92, 40], opacity: 0.6, width: 0.02, blend: 0.035 },
+  bloom: { color: [255, 104, 56], opacity: 0.34, radius: 0.045, gain: 2.4, drop: 0.012, margin: 0.3 },
 } as const;
 
 /**

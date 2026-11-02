@@ -894,10 +894,13 @@ function UdxLoaderImpl(
       yield* inChunks(cn, 131072, (i0, i1) => {
         for (let i = i0; i < i1; i += 1) extC[i] = inkC[i] ? 0 : 1;
       });
-      // edge directions (outward normal from a smoothed outline) → strength: down 1, up `around`
+      // edge directions (outward normal from a smoothed outline) → strength: edges facing down 1,
+      // sideways and up only `around`; enclosed counters (not open to the outside) stay dark
       yield* inChunks(cn, 131072, (i0, i1) => {
         for (let i = i0; i < i1; i += 1) solidC[i] = extC[i] ? 0 : 1;
       });
+      const outerC = yield* reachableFromBorder(inkC, cgw, cgh);
+      const [f0, f1, fp] = GLOW.facing;
       const smoothC = yield* boxBlur(solidC, cgw, cgh, Math.max(1, Math.round(GLOW.normal * h)), 2);
       const edgeC = new Float32Array(cn);
       const edgeWC = new Float32Array(cn);
@@ -912,7 +915,8 @@ function UdxLoaderImpl(
             const len = Math.hypot(gx, gy);
             const down = len > 1e-6 ? -gy / len : 0; // the outward normal's downward part
             edgeC[i] = 1;
-            edgeWC[i] = GLOW.around + (1 - GLOW.around) * smoothstep(-0.9, 1, down);
+            const open = outerC[i] || outerC[i - 1] || outerC[i + 1] || outerC[i - cgw] || outerC[i + cgw];
+            edgeWC[i] = open ? GLOW.around + (1 - GLOW.around) * Math.pow(smoothstep(f0, f1, down), fp) : 0;
           }
         }
       });

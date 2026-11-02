@@ -5,7 +5,7 @@ An animated loading screen for UDX, built with React, TypeScript and Vite. It ha
 1. It types `UDX✝` with an orange cursor.
 2. The cursor strikes right-to-left through the cross, which shatters into small cross fragments. They burst up over the X and D, rising just above the logo, are seen through its gaps, and fade out before they would drift beyond it.
 3. The UDX logo is revealed in the cursor's wake, emerging from depth as it slides in from the right. Two small crosses drop into the U and fade away.
-4. The logo glows once along every edge of the mark (the D's counter and the walls of the slits included), with a soft orange-red edge light strongest on its lower contours, then settles to solid black.
+4. The logo glows once from its bottom contour (the U's point and the rising diagonal towards the X) with a soft orange-red emission and gentle bloom, while the upper U, D and X stay solid black; then it settles back to solid black.
 
 The whole sequence takes about 3.44 s, on a clean white background. It adapts to any screen size and respects `prefers-reduced-motion`.
 
