@@ -1,0 +1,191 @@
+/* Static layout only. Every animated value is written per frame by UdxLoader.tsx. */
+
+.root {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 16rem;
+  overflow: hidden;
+  background: var(--udx-bg, #ffffff);
+  color: var(--udx-text, #3d3d3a);
+  contain: layout paint;
+  isolation: isolate;
+}
+
+.fullscreen {
+  position: fixed;
+  inset: 0;
+  width: auto;
+  height: auto;
+  min-height: 0;
+  z-index: 1000;
+}
+
+/* Optional paper texture (the `texture` prop): soft vignette + static film grain, beneath
+   everything else so the logo (multiplied onto the background) keeps its exact ink and edges. */
+.vignette,
+.grain {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.vignette {
+  background: radial-gradient(
+    ellipse 78% 72% at 50% 48%,
+    rgba(80, 60, 40, 0) 52%,
+    rgba(80, 60, 40, 0.07) 76%,
+    rgba(60, 45, 30, 0.17) 100%
+  );
+}
+
+.grain {
+  background-repeat: repeat;
+  background-size: 160px 160px;
+  opacity: 0.55;
+}
+
+/* Zero-size anchor at the exact centre; children are placed around it in px. */
+.stage {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 0;
+  height: 0;
+}
+
+.line,
+.chars,
+.trail {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 0;
+  height: 0;
+}
+
+.chars {
+  transform-origin: 0 0;
+}
+
+.char {
+  position: absolute;
+  display: block;
+  visibility: hidden;
+  margin: 0;
+  padding: 0;
+  font-family: var(--udx-font-family);
+  font-weight: 400;
+  font-style: normal;
+  font-size: var(--udx-font-size, 40px);
+  line-height: 1;
+  letter-spacing: 0;
+  text-align: center;
+  white-space: pre;
+  font-kerning: none;
+  font-variant-ligatures: none;
+  font-synthesis: none;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  user-select: none;
+  will-change: transform, opacity;
+}
+
+.accent {
+  color: var(--udx-accent, #d97757);
+}
+
+/* Horizontal motion trail behind the moving cursor (a separate element, so the
+   cursor itself never stretches). Width, gradient direction and opacity are per frame. */
+.smear {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 0;
+  opacity: 0;
+  border-radius: 1px;
+  pointer-events: none;
+  will-change: transform, opacity, width;
+}
+
+/* Width/height are fixed once per layout; only translate + opacity animate. */
+.cursor {
+  position: absolute;
+  left: 0;
+  top: 0;
+  opacity: 0;
+  background: var(--udx-accent, #d97757);
+  border-radius: 1px;
+  pointer-events: none;
+  will-change: transform, opacity;
+}
+
+/* The logo layer covers the whole loader (so the 3D depth layers are never clipped); the images inside are placed at the logo's box in px. multiply lets the
+   black-on-white PNG sit on the background without its white box; the black ink stays exact.
+   The fragment canvas sits beneath this layer: black ink × anything = black, so fragments
+   passing behind the logo are occluded, and pure white × anything leaves them untouched. */
+.logo {
+  position: absolute;
+  inset: 0;
+  visibility: hidden;
+  mix-blend-mode: multiply;
+  pointer-events: none;
+}
+
+.logoImg,
+.logoDepth {
+  position: absolute;
+  left: 0;
+  top: 0;
+  display: block;
+  max-width: none;
+  margin: 0;
+  opacity: 0;
+  mix-blend-mode: multiply;
+  transform-origin: 50% 50%;
+  backface-visibility: hidden;
+  user-select: none;
+  -webkit-user-drag: none;
+  pointer-events: none;
+}
+
+/* The logo's one-time glow (inside the logo layer, placed and scaled like the logo in px).
+   Bloom and halo sit beneath the logo image (outside its outline only); the rim sits on top
+   and is screened onto the black near its edges, so the ink glows without changing shape.
+   Only opacity and transform are animated. */
+.glow {
+  position: absolute;
+  left: 0;
+  top: 0;
+  display: block;
+  width: 0;
+  height: 0;
+  opacity: 0;
+  transform-origin: 50% 50%;
+  pointer-events: none;
+  will-change: opacity, transform;
+}
+
+.glowRim {
+  mix-blend-mode: screen;
+}
+
+.canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
