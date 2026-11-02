@@ -373,6 +373,24 @@ export const FRAGMENTS = {
    * the others keep exactly the same paths.
    */
   omit: [3, 5, 7, 9, 10, 11, 13],
+  /**
+   * Re-aimed pieces (generation index → [dx, dy, at]): the five that would otherwise bunch up
+   * over the top of the U/D join are each launched so that their flight has carried them dx, dy
+   * em (from their spot on the cross) `at` s after breaking off, spreading them over the logo's
+   * negative spaces: the U's channel (above where the U drops settle), the U|D slit, the D's
+   * counter, the D|X slit and the X's top notch (the smallest piece, which breaks off right
+   * under it: a large one that close to the X's edge would be faded out by `bound`). Each stays
+   * a glyph's reach inside the logo's outer silhouette. Only their launch velocity changes: drag,
+   * gravity, push, size, colour, timing and the selective rotation (worked out from the new
+   * launch, so some turn and some fly straight) are as for every other piece.
+   */
+  aim: {
+    0: [-1.36, -0.42, 1.5],
+    2: [-1.25, -0.31, 1.3],
+    4: [-0.76, -0.62, 1],
+    6: [-0.02, -0.6, 1.1],
+    8: [-0.45, -0.45, 1],
+  },
   /** drag: velocity left after τ is e^(-k·τ); slow enough that they still drift at 2.3 s */
   drag: 2.6,
   /** slow settle-down drift (em/s²) */
@@ -433,17 +451,20 @@ export function fragmentDrawScale(scale: number): number {
 }
 
 /**
- * Seeded, so every mount sheds the same fragments (same positions as before; only the
- * rotation is now selective and trajectory-driven, see fragmentRotationTable). The caret slices through the cross
+ * Seeded, so every mount sheds the same fragments (the rotation is selective and
+ * trajectory-driven, see fragmentRotationTable). The caret slices through the cross
  * horizontally, so the pieces are flung mostly up and down, perpendicular to the cut
  * (alternating, so it stays balanced), carrying part of the caret's leftward push; a couple
  * of small ones recoil to the right. They clear the text line instead of piling onto it.
- * Sizes vary. Not a radial explosion.
+ * Sizes vary. Not a radial explosion. The pieces in FRAGMENTS.aim are launched toward their
+ * own spots over the logo instead of along the fan; every random draw is still made, so the
+ * others keep exactly the same paths.
  */
 export function generateCrossFragments(): CrossFragment[] {
   const rand = mulberry32(0x57a1e);
   const out: CrossFragment[] = [];
   const n = FRAGMENTS.count;
+  const aim: Readonly<Partial<Record<number, readonly [number, number, number]>>> = FRAGMENTS.aim;
   for (let i = 0; i < n; i += 1) {
     const r = Array.from({ length: 9 }, rand);
     const recoil = i === 5 || i === 10;
@@ -456,9 +477,15 @@ export function generateCrossFragments(): CrossFragment[] {
       : Math.PI - side * (0.52 + 0.9 * Math.min(1, Math.max(0, slot + (r[0] - 0.5) * 0.15)));
     const kick = recoil ? 0.9 + r[1] * 0.6 : 1.6 + r[1] * 2.2;
     const onStem = r[2] < 0.6;
-    const kickX = Math.cos(ang) * kick;
-    const kickY = Math.sin(ang) * kick;
     const push = recoil ? 0 : 0.3 + r[5] * 0.4;
+    // re-aimed: the launch that covers [dx, dy] by `at` under the same drag, push and gravity
+    // as fragmentPose (at full spread)
+    const to = aim[i];
+    const at = to && to[2] > 0 ? to[2] : 0;
+    const travel = at > 0 ? (1 - Math.exp(-FRAGMENTS.drag * at)) / FRAGMENTS.drag : 0;
+    const aimed = !!to && travel > 1e-6;
+    const kickX = aimed ? to[0] / travel + push * FRAGMENTS.pushSpeed : Math.cos(ang) * kick;
+    const kickY = aimed ? (to[1] - 0.5 * FRAGMENTS.gravity * at * at) / travel : Math.sin(ang) * kick;
     const scale = (recoil ? 0.12 : 0.15) + Math.pow(r[6], 1.5) * (recoil ? 0.12 : 0.33);
     out.push({
       ox: onStem ? (r[3] - 0.5) * 0.09 : (r[3] - 0.5) * 0.44,
