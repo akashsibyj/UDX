@@ -11,7 +11,7 @@ import {
   type ForwardedRef,
 } from 'react';
 import styles from './UdxLoader.module.css';
-import { UDX_LOGO_SRC } from './udxLogo';
+import { UDX_LOGO_DENSITY, UDX_LOGO_SRC } from './udxLogo';
 import {
   CROSS_GLYPH,
   FRAGMENTS,
@@ -468,6 +468,8 @@ function UdxLoaderImpl(
     const logoImgs = [img, ...logoDepth];
     const fragments = generateCrossFragments();
     const ink = logoUrl === UDX_LOGO_SRC ? UDX_LOGO_INK : GENERIC_LOGO_INK;
+    /** Image pixels per layout pixel of the logo file (the supplied logo is stored at 3×). */
+    const logoDensity = logoUrl === UDX_LOGO_SRC ? UDX_LOGO_DENSITY : 1;
     const glowEl = (name: string) => logo.querySelector<HTMLCanvasElement>(`canvas[data-glow="${name}"]`);
     const glowEls = { bloom: glowEl('bloom'), halo: glowEl('halo'), rim: glowEl('rim') };
 
@@ -781,7 +783,7 @@ function UdxLoaderImpl(
         const nw = img.naturalWidth;
         const nh = img.naturalHeight;
         if (!nw || !nh) return;
-        const k = Math.min(1, 512 / Math.max(nw, nh));
+        const k = Math.min(1 / logoDensity, 512 / Math.max(nw, nh)); // at the logo's layout size
         const w = Math.max(1, Math.round(nw * k));
         const h = Math.max(1, Math.round(nh * k));
         const c = document.createElement('canvas');
@@ -1244,7 +1246,7 @@ function UdxLoaderImpl(
           buildGlow();
           logoDepth.forEach((g) => (g.src = logoUrl));
           logoAspect = img.naturalWidth / img.naturalHeight || LOGO_NATURAL_ASPECT;
-          logoNaturalW = img.naturalWidth;
+          logoNaturalW = img.naturalWidth / logoDensity;
           applyLayout();
         };
         (typeof img.decode === 'function' ? img.decode() : Promise.resolve()).then(ready, () => {
@@ -1273,13 +1275,14 @@ function UdxLoaderImpl(
     };
 
     /**
-     * The logo image's filter. Supplied UDX logo only: when the file is shown larger than its
-     * own pixels (high-density screens), a matching contrast keeps its edges as crisp as the
-     * original. It only steepens the grey anti-aliasing of the black-on-white mark: its outline
-     * stays exactly where it is and the black stays black. Eased in as the logo emerges.
+     * The logo image's filter. Supplied UDX logo only: if the file is ever shown larger than its
+     * own pixels, a matching contrast keeps its edges as crisp as the original. The supplied
+     * file is stored at UDX_LOGO_DENSITY × with its edges already sharpened, so on today's
+     * screens no contrast is needed (and none is applied: a contrast filter can push an image
+     * past white on extended-range displays). Eased in as the logo emerges.
      */
     const logoFilter = (blur: number, ec: number) => {
-      const up = ink === UDX_LOGO_INK ? (L.logoW * L.snap) / Math.max(1, logoNaturalW) : 1;
+      const up = ink === UDX_LOGO_INK ? (L.logoW * L.snap) / Math.max(1, logoNaturalW * logoDensity) : 1;
       const c = 1 + (Math.min(2.6, Math.max(1, up)) - 1) * clamp01(ec);
       const parts: string[] = [];
       if (blur > 0.05) parts.push(`blur(${px(blur)})`);

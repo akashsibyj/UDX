@@ -120,8 +120,8 @@
   will-change: transform, opacity;
 }
 
-/* The logo layer covers the whole loader (so the 3D depth layers are never clipped); the images inside are placed at the logo's box in px. multiply lets the
-   black-on-white PNG sit on the background without its white box; the black ink stays exact.
+/* The logo layer covers the whole loader (so the 3D depth layers are never clipped); the images inside are placed at the logo's box in px. The supplied
+   logo has a transparent background; multiply also lets a black-on-white logo passed via `logoSrc` sit on the background without its white box.
    The fragment canvas sits beneath this layer: black ink × anything = black, so fragments
    passing behind the logo are occluded, and pure white × anything leaves them untouched. */
 .logo {

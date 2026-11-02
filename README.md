@@ -38,7 +38,7 @@ src/
     UdxLoader.tsx              the component
     UdxLoader.module.css       its styles (CSS Modules)
     timeline.ts                timing, motion and effect parameters
-    udxLogo.ts                 the UDX logo PNG, embedded
+    udxLogo.ts                 the UDX logo (transparent PNG, 3×), embedded
     udxLoaderFont.ts           embedded subset of JetBrains Mono (with the ✝ glyph)
     index.ts                   public exports
     README.md                  props, timeline and implementation notes
