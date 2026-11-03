@@ -178,9 +178,13 @@ export interface Cell {
 /**
  * Splits the text into monospace cells and assigns keystroke times. Spaces ride along
  * with the following glyph so visible characters land at a perfectly even cadence.
+ * Invisible characters (variation selectors such as the U+FE0F an emoji picker adds after
+ * ✝, zero-width joiners and spaces, BOM) are dropped, so they never become empty cells or
+ * phantom struck symbols; a non-finite spaceWidth falls back to 1.
  */
 export function buildCells(text: string, accentSymbols: boolean, spaceWidth = 1): Cell[] {
-  const chars = Array.from(text);
+  const chars = Array.from(typeof text === 'string' ? text.replace(/[\uFE00-\uFE0F\u200B-\u200D\u2060\uFEFF]/g, '') : '');
+  const spaceW = Number.isFinite(spaceWidth) ? Math.max(0, spaceWidth) : 1;
   const keys = chars.filter((c) => c.trim() !== '').length;
   const span = TIMELINE.lastKeyMax - TIMELINE.firstKey;
   const interval = keys > 1 ? Math.min(TIMELINE.keyInterval, span / (keys - 1)) : 0;
@@ -192,7 +196,7 @@ export function buildCells(text: string, accentSymbols: boolean, spaceWidth = 1)
     cells.push({
       ch,
       accent: accentSymbols && !isSpace && !/[\p{L}\p{N}]/u.test(ch),
-      w: isSpace ? Math.max(0, spaceWidth) : 1,
+      w: isSpace ? spaceW : 1,
       x: 0,
       at: 0,
     });

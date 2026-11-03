@@ -664,7 +664,9 @@ function UdxLoaderImpl(
       L.font = L.fontFull * TYPE_SCALE;
       // Logo size follows the typed word: its ink is as wide as "UDX" × logoScale, never
       // larger than the file itself, maxLogoWidth, or the container.
-      const wordW = (wordCells > 0 ? wordCells : units) * advEm * L.fontFull;
+      // No letters (empty, space-only or symbol-only text): size it as for the default "UDX",
+      // so the logo never collapses to its 24 px floor.
+      const wordW = (wordCells > 0 ? wordCells : 3) * advEm * L.fontFull;
       const scale = live.current.logoScale > 0 && Number.isFinite(live.current.logoScale) ? live.current.logoScale : 1;
       const target = (wordW * scale) / Math.max(0.2, ink.x1 - ink.x0);
       const capW = userCap && userCap > 0 ? userCap : logoNaturalW;
