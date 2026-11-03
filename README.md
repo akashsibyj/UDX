@@ -30,6 +30,14 @@ The dev server opens http://localhost:5173 and plays the animation once.
 ## Project structure
 
 ```
+public/                        site icons, copied as-is into dist/
+  favicon.ico                  browser tab, bookmarks, Windows (16, 32, 48 px)
+  favicon-16x16.png            browser tab
+  favicon-32x32.png            browser tab on high-density screens
+  apple-touch-icon.png         iOS home screen (180 px)
+  icon-192.png, icon-512.png   Android home screen and installed app
+  icon-maskable-512.png        Android adaptive icon (mark inside the safe zone)
+  site.webmanifest             app name, icons and colours for Android and installs
 src/
   App.tsx                      demo page: the loader, full screen
   main.tsx                     React entry point
